@@ -5,7 +5,6 @@
 import json
 import dateutil.parser
 import babel
-import pandas as pd
 from flask import Flask, render_template, request, Response, flash, redirect, url_for, jsonify
 from flask_moment import Moment
 from flask_sqlalchemy import SQLAlchemy
@@ -23,7 +22,7 @@ app = Flask(__name__)
 moment = Moment(app)
 app.config.from_object('config')
 db = SQLAlchemy(app)
-# migrate = Migrate(app, db)
+migrate = Migrate(app, db)
 
 # ----------------------------------------------------------------------------#
 # Models.
@@ -60,8 +59,8 @@ class Show(db.Model):
     __tablename__ = 'Show'
 
     id = db.Column(db.Integer, primary_key=True)
-    artist_id = db.Column(db.Integer, db.ForeignKey('artist.id', ondelete='CASCADE'))
-    venue_id = db.Column(db.Integer, db.ForeignKey('venue.id', ondelete='CASCADE'))
+    artist_id = db.Column(db.Integer, db.ForeignKey('Artist.id', ondelete='CASCADE'))
+    venue_id = db.Column(db.Integer, db.ForeignKey('Venue.id', ondelete='CASCADE'))
     start_time = db.Column(db.DateTime)
 
 
