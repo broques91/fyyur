@@ -5,7 +5,8 @@
 import json
 import dateutil.parser
 import babel
-from flask import Flask, render_template, request, Response, flash, redirect, url_for
+import pandas as pd
+from flask import Flask, render_template, request, Response, flash, redirect, url_for, jsonify
 from flask_moment import Moment
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
@@ -22,7 +23,7 @@ app = Flask(__name__)
 moment = Moment(app)
 app.config.from_object('config')
 db = SQLAlchemy(app)
-migrate = Migrate(app, db)
+# migrate = Migrate(app, db)
 
 # ----------------------------------------------------------------------------#
 # Models.
@@ -55,7 +56,13 @@ class Artist(db.Model):
     facebook_link = db.Column(db.String(120))
 
 
-# TODO Implement Show and Artist models, and complete all model relationships and properties, as a database migration.
+class Show(db.Model):
+    __tablename__ = 'Show'
+
+    id = db.Column(db.Integer, primary_key=True)
+    artist_id = db.Column(db.Integer, db.ForeignKey('artist.id', ondelete='CASCADE'))
+    venue_id = db.Column(db.Integer, db.ForeignKey('venue.id', ondelete='CASCADE'))
+    start_time = db.Column(db.DateTime)
 
 
 # ----------------------------------------------------------------------------#
@@ -86,32 +93,36 @@ def index():
 #  Venues
 #  ----------------------------------------------------------------
 
-@app.route('/venues')
+@app.route('/venues', methods=['GET', 'POST'])
 def venues():
-    # TODO: replace with real venues data.
-    #       num_shows should be aggregated based on number of upcoming shows per venue.
-    data = [{
-        "city": "San Francisco",
-        "state": "CA",
-        "venues": [{
-            "id": 1,
-            "name": "The Musical Hop",
-            "num_upcoming_shows": 0,
-        }, {
-            "id": 3,
-            "name": "Park Square Live Music & Coffee",
-            "num_upcoming_shows": 1,
-        }]
-    }, {
-        "city": "New York",
-        "state": "NY",
-        "venues": [{
-            "id": 2,
-            "name": "The Dueling Pianos Bar",
-            "num_upcoming_shows": 0,
-        }]
-    }]
-    return render_template('pages/venues.html', areas=data);
+    data = []
+    # get all venues
+    venues = Venue.query.all()
+    # create a set for the locations
+    locations = set()
+
+    for venue in venues:
+        # add city/state tuples
+        locations.add((venue.city, venue.state))
+
+    # for each unique city/state, add venues
+    for location in locations:
+        data.append({
+            "city": location[0],
+            "state": location[1],
+            "venues": []
+        })
+
+    # for each area, add venues to matching city/state
+    for venue in venues:
+        for area in data:
+            if venue.city == area['city'] and venue.state == area['state']:
+                area['venues'].append({
+                    "id": venue.id,
+                    "name": venue.name,
+                })
+
+    return render_template('pages/venues.html', areas=data)
 
 
 @app.route('/venues/search', methods=['POST'])
