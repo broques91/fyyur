@@ -10,6 +10,7 @@ from flask import Flask, render_template, request, Response, flash, redirect, ur
 from flask_moment import Moment
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
+from sqlalchemy import func
 import logging
 from logging import Formatter, FileHandler
 from flask_wtf import Form
@@ -259,17 +260,32 @@ def artists():
 
 @app.route('/artists/search', methods=['POST'])
 def search_artists():
-    # TODO: implement search on artists with partial string search. Ensure it is case-insensitive.
-    # seach for "A" should return "Guns N Petals", "Matt Quevado", and "The Wild Sax Band".
-    # search for "band" should return "The Wild Sax Band".
+    data = []
+
+    search_term = request.form.get('search_term', '')
+    # artists founds
+    artists = Artist.query.filter(Artist.name.ilike(f'%{search_term}%')).all()
+
+    for artist in artists:
+        num_upcoming_shows = 0
+        # get all shows for a given artist
+        shows = Show.query.filter_by(artist_id=artist.id).all()
+
+        for show in shows:
+            if show.start_time > datetime.now():
+                num_upcoming_shows += 1
+
+        data.append({
+            "id": artist.id,
+            "name": artist.name,
+            "num_upcoming_shows": num_upcoming_shows
+        })
+
     response = {
-        "count": 1,
-        "data": [{
-            "id": 4,
-            "name": "Guns N Petals",
-            "num_upcoming_shows": 0,
-        }]
+        "count": len(data),
+        "data": data
     }
+
     return render_template('pages/search_artists.html', results=response,
                            search_term=request.form.get('search_term', ''))
 
