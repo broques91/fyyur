@@ -4,8 +4,8 @@
 
 import json
 import dateutil.parser
-import pandas as pd
 import babel
+import ast
 from flask import Flask, render_template, request, Response, flash, redirect, url_for, jsonify
 from flask_moment import Moment
 from flask_sqlalchemy import SQLAlchemy
@@ -186,7 +186,7 @@ def show_venue(venue_id):
     data = {
         "id": venue.id,
         "name": venue.name,
-        "genres": [venue.genres],
+        "genres": ast.literal_eval(venue.genres),
         "address": venue.address,
         "city": venue.city,
         "state": venue.state,
