@@ -10,7 +10,6 @@ from flask import Flask, render_template, request, Response, flash, redirect, ur
 from flask_moment import Moment
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
-from sqlalchemy import func
 import logging
 from logging import Formatter, FileHandler
 from flask_wtf import Form
@@ -47,6 +46,29 @@ class Venue(db.Model):
     seeking_talent = db.Column(db.Boolean, default=False)
     seeking_description = db.Column(db.String)
 
+    def insert(self):
+        db.session.add(self)
+        try:
+            db.session.commit()
+        except Exception as e:
+            print(f"Error {e} while trying to commit to database")
+            db.session.rollback()
+
+    def delete(self):
+        db.session.delete(self)
+        try:
+            db.session.commit()
+        except Exception as e:
+            print(f"Error {e} while trying to commit to database")
+            db.session.rollback()
+
+    def update(self):
+        try:
+            db.session.commit()
+        except Exception as e:
+            print(f"Error {e} while trying to commit to database")
+            db.session.rollback()
+
 
 class Artist(db.Model):
     __tablename__ = 'Artist'
@@ -63,6 +85,29 @@ class Artist(db.Model):
     seeking_description = db.Column(db.String)
     website = db.Column(db.String(120))
 
+    def insert(self):
+        db.session.add(self)
+        try:
+            db.session.commit()
+        except Exception as e:
+            print(f"Error {e} while trying to commit to database")
+            db.session.rollback()
+
+    def delete(self):
+        db.session.delete(self)
+        try:
+            db.session.commit()
+        except Exception as e:
+            print(f"Error {e} while trying to commit to database")
+            db.session.rollback()
+
+    def update(self):
+        try:
+            db.session.commit()
+        except Exception as e:
+            print(f"Error {e} while trying to commit to database")
+            db.session.rollback()
+
 
 class Show(db.Model):
     __tablename__ = 'Show'
@@ -71,6 +116,29 @@ class Show(db.Model):
     artist_id = db.Column(db.Integer, db.ForeignKey('Artist.id', ondelete='CASCADE'))
     venue_id = db.Column(db.Integer, db.ForeignKey('Venue.id', ondelete='CASCADE'))
     start_time = db.Column(db.DateTime)
+
+    def insert(self):
+        db.session.add(self)
+        try:
+            db.session.commit()
+        except Exception as e:
+            print(f"Error {e} while trying to commit to database")
+            db.session.rollback()
+
+    def delete(self):
+        db.session.delete(self)
+        try:
+            db.session.commit()
+        except Exception as e:
+            print(f"Error {e} while trying to commit to database")
+            db.session.rollback()
+
+    def update(self):
+        try:
+            db.session.commit()
+        except Exception as e:
+            print(f"Error {e} while trying to commit to database")
+            db.session.rollback()
 
 
 # ----------------------------------------------------------------------------#
@@ -235,11 +303,49 @@ def create_venue_form():
 def create_venue_submission():
     # TODO: insert form data as a new Venue record in the db, instead
     # TODO: modify data to be the data object returned from db insertion
+    error = False
 
-    # on successful db insert, flash success
-    flash('Venue ' + request.form['name'] + ' was successfully listed!')
-    # TODO: on unsuccessful db insert, flash an error instead.
-    # e.g., flash('An error occurred. Venue ' + data.name + ' could not be listed.')
+    # Get data
+    name = request.form['name']
+    city = request.form['city']
+    state = request.form['state']
+    address = request.form['address']
+    phone = request.form['phone']
+    genres = request.form['genres']
+    facebook_link = request.form['facebook_link']
+    image_link = request.form['image_link']
+    website = request.form['website']
+    seeking_talent = True if 'seeking_talent' in request.form else False
+    seeking_description = request.form['seeking_description']
+
+    # Create model
+    venue = Venue(
+        name=name,
+        city=city,
+        state=state,
+        address=address,
+        phone=phone,
+        genres=genres,
+        facebook_link=facebook_link,
+        image_link=image_link,
+        website=website,
+        seeking_talent=seeking_talent,
+        seeking_description=seeking_description
+    )
+
+    # Update DB
+    try:
+        venue.insert()
+    except Exception:
+        error = True
+
+    if error:
+        flash('An error occurred. Venue ' + request.form['name'] + ' could not be listed.')
+    else:
+        # on successful db insert, flash success
+        flash('Venue ' + request.form['name'] + ' was successfully listed!')
+
+
     # see: http://flask.pocoo.org/docs/1.0/patterns/flashing/
     return render_template('pages/home.html')
 
