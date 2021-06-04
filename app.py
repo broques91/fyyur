@@ -413,6 +413,7 @@ def search_artists():
 def show_artist(artist_id):
     # get artist by id
     artist = Artist.query.filter_by(id=artist_id).first()
+
     # get all shows for a given artist
     shows = Show.query.filter_by(artist_id=artist_id).all()
 
@@ -542,8 +543,25 @@ def edit_venue(venue_id):
 
 @app.route('/venues/<int:venue_id>/edit', methods=['POST'])
 def edit_venue_submission(venue_id):
-    # TODO: take values from the form submitted, and update existing
-    # venue record with ID <venue_id> using the new attributes
+    # Get venue
+    venue = Venue.query.filter_by(id=venue_id).first()
+
+    # Update venue data
+    venue.name = request.form['name']
+    venue.city = request.form['city']
+    venue.state = request.form['state']
+    venue.address = request.form['address']
+    venue.phone = request.form['phone']
+    venue.genres = request.form['genres']
+    venue.website = request.form['website']
+    venue.facebook_link = request.form['facebook_link']
+    venue.seeking_talent = request.form['seeking_talent']
+    venue.seeking_description = request.form['seeking_description']
+    venue.image_link = request.form['image_link']
+
+    # Update DB
+    venue.update()
+
     return redirect(url_for('show_venue', venue_id=venue_id))
 
 
