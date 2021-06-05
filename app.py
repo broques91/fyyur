@@ -625,6 +625,7 @@ def create_artist_submission():
 def shows():
     data = []
 
+    # get shows
     shows = Show.query.all()
 
     for show in shows:
